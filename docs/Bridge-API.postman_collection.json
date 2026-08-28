@@ -1,0 +1,182 @@
+{
+	"info": {
+		"_postman_id": "bridge-dll-api",
+		"name": "Bridge DLL API",
+		"description": "REST API for the copy trading bridge (MetaTrader 4/5). The bridge runs locally when an EA is attached; default port is 40000. All endpoints are documented here; there is no public Swagger/OpenAPI endpoint.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:40000"
+		},
+		{
+			"key": "account_id",
+			"value": "12345678"
+		}
+	],
+	"item": [
+		{
+			"name": "Orders",
+			"item": [
+				{
+					"name": "Create order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"symbol\": \"EURUSD\",\n  \"type\": \"market\",\n  \"side\": \"buy\",\n  \"volume\": 0.1,\n  \"price\": null,\n  \"sl\": null,\n  \"tp\": null\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/orders",
+							"host": ["{{baseUrl}}"],
+							"path": ["orders"]
+						},
+						"description": "Creates a new order. Body is the order payload (symbol, type, side, volume, price, sl, tp). For slave accounts the bridge may convert symbol/volume according to config. Returns 200 with success/error, or 202 if MT did not ack in time."
+					}
+				},
+				{
+					"name": "Modify order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"ticket\": 1234567,\n  \"sl\": 1.08200,\n  \"tp\": 1.09000,\n  \"price\": 1.08480\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/orders/modify",
+							"host": ["{{baseUrl}}"],
+							"path": ["orders", "modify"]
+						},
+						"description": "Modifies an existing order (SL, TP, price). Body must include ticket and the fields to change."
+					}
+				},
+				{
+					"name": "Cancel order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"ticket\": 1234567\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/orders/cancel",
+							"host": ["{{baseUrl}}"],
+							"path": ["orders", "cancel"]
+						},
+						"description": "Cancels an order. Body must include ticket."
+					}
+				}
+			]
+		},
+		{
+			"name": "Config",
+			"item": [
+				{
+					"name": "Configure account (master)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"role\": \"master\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/accounts/{{account_id}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "accounts", "{{account_id}}"]
+						},
+						"description": "Configures the account as master (source for copy trading). master_tcp_url is ignored for masters. Other accounts connect to this account's TCP URL to receive trading events."
+					}
+				},
+				{
+					"name": "Configure account (slave)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"role\": \"slave\",\n  \"master_tcp_url\": \"tcp://localhost:50000/87654321\",\n  \"lot_type\": \"multiplier\",\n  \"lot_multiplier\": 1.0,\n  \"fixed_lot\": null,\n  \"reverse_trading\": false,\n  \"prefix\": { \"enabled\": false, \"value\": null, \"action\": \"add\" },\n  \"suffix\": { \"enabled\": false, \"value\": null, \"action\": \"add\" },\n  \"symbol_translations\": []\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/accounts/{{account_id}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "accounts", "{{account_id}}"]
+						},
+						"description": "Configures the account as slave (follower). master_tcp_url can be null if no master is connected yet. Accepts snake_case (role, master_tcp_url, lot_type, lot_multiplier, fixed_lot, reverse_trading, prefix, suffix, symbol_translations) or camelCase (masterTcpUrl, lotType, lotMultiplier, fixedLot, reverseTrading). lot_type: 'fixed' or 'multiplier'. prefix/suffix: { enabled, value, action: 'add'|'remove' }. symbol_translations: [\"SOURCE:TARGET\", ...]. If account has a server, body must include server and it must match."
+					}
+				},
+				{
+					"name": "Delete account configuration",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"role\": null\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/accounts/{{account_id}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "accounts", "{{account_id}}"]
+						},
+						"description": "Deletes the account configuration. Send empty body or body with role null."
+					}
+				},
+				{
+					"name": "Enable/disable TCP connection",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/accounts/{{account_id}}/tcp?enabled=true",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "accounts", "{{account_id}}", "tcp"],
+							"query": [
+								{
+									"key": "enabled",
+									"value": "true",
+									"description": "true to enable TCP, false to disable"
+								}
+							]
+						},
+						"description": "Turns TCP connection on or off without changing account config. Same auth (x-api-key, x-api-secret) and account_id must match the bridge account. When disabled: master stops emitting events and stops TCP server; slave disconnects from master. When enabled: master starts TCP server and emits; slave connects to master_tcp_url if configured. Does not change heartbeat response format."
+					}
+				}
+			]
+		}
+	]
+}

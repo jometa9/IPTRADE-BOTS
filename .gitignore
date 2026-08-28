@@ -1,0 +1,17 @@
+# Build outputs
+bridge-dll/build/
+*.obj
+*.pdb
+*.ilk
+*.tlog
+
+# Editor/OS
+.vs/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+
+REFERENCE ONLY/
