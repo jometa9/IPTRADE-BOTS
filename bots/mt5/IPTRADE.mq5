@@ -1,5 +1,5 @@
 #property copyright "IPTRADE COPIER LLC"
-#property link      "http://iptradecopier.com"
+#property link      "https://jometa9.github.io/IPTRADE"
 #property version   "1.0"
 #property description "IPTRADE MetaTrader 5 expert advisor for trade copier IPTRADE"
 #property strict
